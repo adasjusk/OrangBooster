@@ -11,7 +11,7 @@ Only For Windows 10/11
 -   Right-click on the Windows start menu and select PowerShell or Terminal (Not CMD).
 -   Copy and paste the code below and press enter  
 ```
-irm https://raw.githubusercontent.com/adasjusk/Orange-Booster/main/get.ps1 | iex
+irm https://cutt.ly/orangboost | iex
 ``` 
 
 ### Method 2 - Download File
