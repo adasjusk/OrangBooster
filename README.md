@@ -5,8 +5,6 @@ keep this project clean and efficient.
 Only For Windows 10/11
 
 ![image](https://github.com/user-attachments/assets/5579d550-a0bf-471b-bd20-7c67d9b710ea)
-
-
 ---
 
 ### Method 1 - PowerShell (Easiest, Safest)
@@ -18,7 +16,6 @@ irm https://cutt.ly/orangboost | iex
 ``` 
 
 ### Method 2 - Download File
-
 -   Download the file under the code button from [GitHub](https://github.com/adasjusk/Orange-Booster)
 -   Run the file named `orangbostr.exe`
 
@@ -26,5 +23,4 @@ irm https://cutt.ly/orangboost | iex
 
 Latest Version: 7.0 <br>
 Release date: 2024-10-8
-
 <p align="center">Made with Love ❤️</p>
