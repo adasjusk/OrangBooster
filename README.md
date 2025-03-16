@@ -22,5 +22,5 @@ irm https://cutt.ly/orangboost | iex
 ---
 
 Latest Version: 7.0 <br>
-Release date: 2024-10-8
+Release date: 2025-03-20
 <p align="center">Made with Love ❤️</p>
