@@ -1,4 +1,6 @@
 @echo off
+clear
+cls
 echo --------------------------------------------------
 echo  Hello and welcome so this program is rewriten
 echo  in python and no longer works the normal 
