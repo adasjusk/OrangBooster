@@ -23,7 +23,7 @@ irm https://cutt.ly/orangboost | iex
 
 if you still want that old legacy batch here:
 ```
-irm https://raw.githubusercontent.com/adasjusk/OrangBooster/legacy/bostr.bat | iex
+irm https://raw.githubusercontent.com/adasjusk/OrangBooster/legacy/get.ps1 | iex
 ``` 
 
 Latest Version: 7.0 <br>
