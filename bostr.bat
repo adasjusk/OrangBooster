@@ -1,5 +1,4 @@
 @echo off
-clear
 cls
 echo --------------------------------------------------
 echo  Hello and welcome so this program is rewriten
