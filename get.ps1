@@ -3,7 +3,7 @@ $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
 $CommonURLPart = 'bostr.bat'
-$DownloadURL1 = 'https://raw.githubusercontent.com/adasjusk/Orange-Booster/main/' + $CommonURLPart
+$DownloadURL1 = 'https://raw.githubusercontent.com/adasjusk/Orange-Booster/legacy/' + $CommonURLPart
 
 try {
     $response = Invoke-WebRequest -Uri $DownloadURL1 -UseBasicParsing
