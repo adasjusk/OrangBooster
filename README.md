@@ -21,6 +21,11 @@ irm https://cutt.ly/orangboost | iex
 
 ---
 
+if you still want that old legacy batch here:
+```
+irm https://raw.githubusercontent.com/adasjusk/OrangBooster/legacy/bostr.bat | iex
+``` 
+
 Latest Version: 7.0 <br>
 Release date: 2025-03-20
 <p align="center">Made with Love ❤️</p>
