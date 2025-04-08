@@ -25,8 +25,10 @@ irm orange.run.place/get.ps1 | iex
 if you still want that old legacy batch here:
 ```
 irm raw.githubusercontent.com/adasjusk/OrangBooster/legacy/get.ps1 | iex
-``` 
+```
 
+Thanks For Support
 Latest Version: 7.0 <br>
+Next Release: 7.0
 Release date: 2025-03-20
 <p align="center">Made with Love ❤️</p>
