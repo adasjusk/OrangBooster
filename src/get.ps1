@@ -12,7 +12,7 @@ if (-not $isAdmin) {
 
 # Define download URL and path
 $CommonURLPart = 'bostr.exe'
-$DownloadURL1 = 'https://raw.githubusercontent.com/adasjusk/Orange-Booster/main/' + $CommonURLPart
+$DownloadURL1 = 'https://raw.githubusercontent.com/adasjusk/OrangeBooster/main/' + $CommonURLPart
 
 $rand = Get-Random -Maximum 99999999
 $AppDataPath = Join-Path -Path $env:APPDATA -ChildPath 'InterJava-Programs'
