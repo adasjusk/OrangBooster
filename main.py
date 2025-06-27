@@ -28,7 +28,7 @@ from packaging.version import Version
 # Credits: Vakarux, adasjusk
 # License: GPLv3 Allows to edit and redistribute
 # Version: 6.5 beta 
-# Date: 2025-06-14
+# Date: 2025-06-28
 #################################################################################
 
 # Hide deprecation warnings
