@@ -1,0 +1,21 @@
+{
+  "tasks": {
+    "NumLock at Startup": true,
+    "Hidden Files": false,
+    "Make BSOD Better": false,
+    "Home and Gallery": true,
+    "Hibernation": true,
+    "Reserved Storage": true,
+    "Edge Browser": true,
+    "Nagle Algorithm For Minecraft": true,
+    "Dark Mode": false,
+    "Ads In Windows": true,
+    "Sticky Keys": true,
+    "Cortana": true,
+    "Bing Search in Start Menu": true,
+    "Copilot AI": true,
+    "Classic Right-Click Menu": false,
+    "BitLocker Encryption": true,
+    "Set taskbar to left": false
+  }
+}
