@@ -1,0 +1,6 @@
+requests
+Pillow
+opencv-python
+packaging
+psutil
+customtkinter

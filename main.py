@@ -21,6 +21,7 @@ import cv2
 import requests
 from packaging.version import Version
 
+
 #################################################################################
 # Created by AdasJusk
 # GitHub: https://github.com/adasjusk/OrangBooster
@@ -1244,12 +1245,10 @@ def play_splash_in_gui(root, video_path, on_finish):
         print("[!] Warning: Splash video not found")
         on_finish()
         return
-        
     splash_overlay = ctk.CTkFrame(root, width=720, height=180, corner_radius=0, fg_color="black")
     splash_overlay.place(x=0, y=0, relwidth=1, relheight=1)
     label = ctk.CTkLabel(splash_overlay, text="")
     label.pack(expand=True, fill="both")
-    
     try:
         cap = cv2.VideoCapture(video_file)
         if not cap.isOpened():
@@ -1262,7 +1261,6 @@ def play_splash_in_gui(root, video_path, on_finish):
         splash_overlay.destroy()
         on_finish()
         return
-
     def update_frame():
         ret, frame = cap.read()
         if not ret:
@@ -1368,9 +1366,9 @@ def launch_gui():
             ctk.set_default_color_theme(str(theme_path))
         else:
             ctk.set_default_color_theme("orange.json")
-
         app = OrangeBoosterApp(root)
         app.show_admin_warning()  # Show admin warning at startup
+        play_splash_in_gui(root, "video.mp4", lambda: app.show_tab("Updates & About"))
         root.mainloop()
     except Exception as e:
         messagebox.showerror("Critical Error", f"Failed to start application:\n{e}")
@@ -1541,36 +1539,6 @@ class OrangeBoosterApp:
                     messagebox.showinfo("Done", "Selected boosts executed.")
                 threading.Thread(target=run, daemon=True).start()
             ctk.CTkButton(self.options_frame, text="Execute Selected Boosts", command=run_selected_boosts, width=220, height=32).pack(pady=12)
-            return
-        if tab_name == "Browser":
-            # Modern browser section with images and working buttons
-            self.options_frame.grid_columnconfigure((0, 1, 2), weight=1, uniform="browser")
-            browsers = [
-                ("Brave Browser", "brave.png", open_brave_browser),
-                ("Chromium Browser", "chromium.png", open_ungoogled_chromium),
-                ("Arc Browser", "arc.png", open_arc_browser)
-            ]
-            for idx, (name, img_file, func) in enumerate(browsers):
-                try:
-                    img_path = os.path.join(APP_DIR, img_file)
-                    if not os.path.exists(img_path):
-                        # Try to download if missing
-                        ensure_resources()
-                    img = Image.open(img_path).resize((96, 96), Image.LANCZOS)
-                    photo = ImageTk.PhotoImage(img)
-                except Exception as e:
-                    print(f"[!] Failed to load {img_file}: {e}")
-                    photo = None
-                browser_frame = ctk.CTkFrame(self.options_frame, fg_color="transparent")
-                browser_frame.grid(row=0, column=idx, padx=10, pady=10, sticky="nsew")
-                img_label = ctk.CTkLabel(browser_frame, image=photo, text="", fg_color="transparent")
-                img_label.image = photo
-                img_label.pack(anchor="center")
-                browser_button = ctk.CTkButton(browser_frame, text=name, fg_color="#ff7f00", text_color="#000000", hover_color="#ffa733", width=160, height=48, corner_radius=10, command=func)
-                browser_button.pack(pady=(8, 4))
-                if name == "Brave Browser":
-                    recommended_label = ctk.CTkLabel(browser_frame, text="Recommended", font=("Helvetica", 11, "italic"), text_color="#ffaa33")
-                    recommended_label.pack(pady=(2, 0))
             return
         if tab_name == "Tasks":
             win11 = is_windows_11()
