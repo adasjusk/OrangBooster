@@ -22,7 +22,5 @@ Only For Windows 10/11
 > Beta is expermental versions branch where is unstable version of the program and developers are not responsible for your damages to your files or pc.
 > Use this program as a test or help.
 
-
-Thanks For Support
 Latest Version: Unknown <br>
 <p align="center">Made with Love ❤️</p>
