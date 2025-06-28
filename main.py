@@ -1,7 +1,7 @@
-import platform
 import sys
 import os
 from pathlib import Path
+import platform
 import warnings
 from ctypes import wintypes
 import winreg
@@ -19,26 +19,24 @@ import threading
 from PIL import Image, ImageTk
 import cv2
 import requests
+import glob
+import getpass
 from packaging.version import Version
 
-
-#################################################################################
+##################################################################################
 # Created by AdasJusk
 # GitHub: https://github.com/adasjusk/OrangBooster
 # Credits: Vakarux, adasjusk
 # License: GPLv3 Allows to edit and redistribute
 # Version: 6.5 beta 
-# Date: 2025-06-28
-#################################################################################
-
+# Date: 2025-06-14
 # Hide deprecation warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="customtkinter")
-
+##################################################################################
 # Set up application directories
 APP_DIR = Path(os.path.expandvars("%ProgramData%")) / "InterJava-Programs"
 TEMP_DIR = Path(os.environ.get("TEMP", os.path.expandvars("%TEMP%")))
 STATE_FILE = APP_DIR / "state.json"
-
 BASE_URL = "https://raw.githubusercontent.com/adasjusk/OrangBooster/beta/files/"
 REQUIRED_FILES = {
     "video.mp4": BASE_URL + "video.mp4",
@@ -49,7 +47,7 @@ REQUIRED_FILES = {
     "arc.png": BASE_URL + "arc.png",
     "orange.json": BASE_URL + "orange.json"
 }
-
+##################################################################################
 def verify_required_files():
     missing_files = []
     for filename, url in REQUIRED_FILES.items():
@@ -314,16 +312,24 @@ Add-Type $code -name Win32 -NameSpace System
 '''
     subprocess.run(["powershell", "-NoProfile", "-Command", ps_script], shell=True, check=False)
     clean_temp_files()
-    self.run_operation("Optimizing Memory Settings", [
-            r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "LargeSystemCache" /t REG_DWORD /d "1" /f',
-            r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "DisablePagingExecutive" /t REG_DWORD /d "1" /f',
-            r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "SystemCacheDirtyPageThreshold" /t REG_DWORD /d "0" /f'
-        ])
-    self.run_operation("Optimizing Shell Settings", [
-            r'reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ListviewAlphaSelect" /t REG_DWORD /d "0" /f',
-            r'reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ListviewShadow" /t REG_DWORD /d "0" /f',
-            r'reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "TaskbarAnimations" /t REG_DWORD /d "0" /f'
-        ])
+    # Instead of self.run_operation, just print and run the commands directly
+    print("Optimizing Memory Settings...")
+    memory_commands = [
+        r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "LargeSystemCache" /t REG_DWORD /d "1" /f',
+        r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "DisablePagingExecutive" /t REG_DWORD /d "1" /f',
+        r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "SystemCacheDirtyPageThreshold" /t REG_DWORD /d "0" /f'
+    ]
+    for cmd in memory_commands:
+        subprocess.run(cmd, shell=True)
+    print("Optimizing Shell Settings...")
+    shell_commands = [
+        r'reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ListviewAlphaSelect" /t REG_DWORD /d "0" /f',
+        r'reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "ListviewShadow" /t REG_DWORD /d "0" /f',
+        r'reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "TaskbarAnimations" /t REG_DWORD /d "0" /f'
+    ]
+    for cmd in shell_commands:
+        subprocess.run(cmd, shell=True)
+
 def clean_temp_files():
     print("Cleaning Temp Files")
     commands = [
@@ -475,6 +481,20 @@ def debloat_system_services():
             "Microsoft.MicrosoftOfficeHub", 
             "*EclipseManager*", 
             "*ActiproSoftwareLLC*", 
+            "Microsoft.MicrosoftEdgeDevToolsClient",
+            "Microsoft.Windows.ContentDeliveryManager",
+            "Microsoft.Windows.SecureAssessmentBrowser",
+            "Microsoft.Windows.NarratorQuickStart",
+            "Microsoft.PowerAutomateDesktop",
+            "MicrosoftWindows.CrossDevice",
+            "Microsoft.Windows.DevHome",
+            "Microsoft.BingSearch",
+            "Microsoft.ApplicationCompatibilityEnhancements",
+            "Microsoft.Edge.GameAssist",
+            "Microsoft.ScreenSketch",
+            "MicrosoftWindows.Client.WebExperience",
+            "MicrosoftWindows.57058570.Speion",
+            "MicrosoftWindows.Client.Photon",
             "*AdobeSystemsIncorporated.AdobePhotoshopExpress*", 
             "*Duolingo-LearnLanguagesforFree*", 
             "*PandoraMediaInc*", 
@@ -623,9 +643,38 @@ def disable_copilot_ai():
         '| Remove-AppxPackage -AllUsers -ErrorAction Continue'
     )
     run_powershell('winget uninstall --id Microsoft.Copilot_8wekyb3d8bbwe --silent')
+    run_powershell(
+        'Get-AppxPackage -AllUsers | Where-Object {$_.Name -Like "*MicrosoftWindows.Client.CoreAI*"} | Remove-AppxPackage -AllUsers -ErrorAction Continue'
+    )
     subprocess.run([
         "reg", "add",
-        r"HKCU\Software\Microsoft\Windows\Shell\Copilot\BingChat",
+        r"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI",
+        "/v", "DisableAllDataAnalysis",
+        "/t", "REG_DWORD",
+        "/d", "0",
+        "/f"
+    ], shell=True)
+    subprocess.run([
+        "reg", "add",
+        r"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI",
+        "/v", "AllowRecallEnablement",
+        "/t", "REG_DWORD",
+        "/d", "0",
+        "/f"
+    ], shell=True)
+    # Paint: DisableImageCreator
+    subprocess.run([
+        "reg", "add",
+        r"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Paint",
+        "/v", "DisableImageCreator",
+        "/t", "REG_DWORD",
+        "/d", "1",
+        "/f"
+    ], shell=True)
+    # Copilot registry disables
+    subprocess.run([
+        "reg", "add",
+        r"HKCU\\Software\\Microsoft\\Windows\\Shell\\Copilot\\BingChat",
         "/v", "IsUserEligible",
         "/t", "REG_DWORD",
         "/d", "0",
@@ -633,7 +682,7 @@ def disable_copilot_ai():
     ], shell=True)
     subprocess.run([
         "reg", "add",
-        r"HKCU\Software\Microsoft\Windows\Shell\Copilot",
+        r"HKCU\\Software\\Microsoft\\Windows\\Shell\\Copilot",
         "/v", "IsCopilotAvailable",
         "/t", "REG_DWORD",
         "/d", "0",
@@ -641,7 +690,7 @@ def disable_copilot_ai():
     ], shell=True)
     subprocess.run([
         "reg", "add",
-        r"HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced",
+        r"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
         "/v", "ShowCopilotButton",
         "/t", "REG_DWORD",
         "/d", "0",
@@ -649,7 +698,7 @@ def disable_copilot_ai():
     ], shell=True)
     subprocess.run([
         "reg", "add",
-        r"HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\WindowsCopilot",
+        r"HKEY_CURRENT_USER\\Software\\Policies\\Microsoft\\Windows\\WindowsCopilot",
         "/v", "TurnOffWindowsCopilot",
         "/t", "REG_DWORD",
         "/d", "1",
@@ -1168,6 +1217,121 @@ def restore_edge():
     except Exception as e:
         print(f"[!] Failed to restore Microsoft Edge: {e}")
 
+def clear_browser_cache_and_history():
+    user = getpass.getuser()
+    browser_paths = {
+        'Brave': [
+            Path(os.environ['LOCALAPPDATA']) / 'BraveSoftware' / 'Brave-Browser' / 'User Data' / 'Default',
+        ],
+        'LibreWolf': [
+            Path(os.environ['APPDATA']) / 'librewolf' / 'Profiles',
+        ],
+        'Firefox': [
+            Path(os.environ['APPDATA']) / 'Mozilla' / 'Firefox' / 'Profiles',
+        ],
+    }
+    brave_targets = ['Cache', 'Code Cache', 'Service Worker', 'History', 'History Provider Cache', 'Visited Links']
+    ff_cache_patterns = ['cache2', 'startupCache']
+    ff_history_files = ['places.sqlite', 'places.sqlite-wal', 'places.sqlite-shm']
+    removed = []
+    for browser, paths in browser_paths.items():
+        for base in paths:
+            if not base.exists():
+                continue
+            if browser == 'Brave':
+                for target in brave_targets:
+                    target_path = base / target
+                    if target_path.exists():
+                        try:
+                            if target_path.is_dir():
+                                shutil.rmtree(target_path, ignore_errors=True)
+                            else:
+                                target_path.unlink(missing_ok=True)
+                            removed.append(str(target_path))
+                        except Exception:
+                            pass
+            elif browser in ('LibreWolf', 'Firefox'):
+                for profile in base.glob('*'):
+                    if not profile.is_dir():
+                        continue
+                    for cache_name in ff_cache_patterns:
+                        cache_path = profile / cache_name
+                        if cache_path.exists():
+                            try:
+                                shutil.rmtree(cache_path, ignore_errors=True)
+                                removed.append(str(cache_path))
+                            except Exception:
+                                pass
+                    for hist_file in ff_history_files:
+                        hist_path = profile / hist_file
+                        if hist_path.exists():
+                            try:
+                                hist_path.unlink(missing_ok=True)
+                                removed.append(str(hist_path))
+                            except Exception:
+                                pass
+    messagebox.showinfo("Cleanup", f"Browser cache and search history cleaned for Brave, LibreWolf, and Firefox.\nFiles/folders removed: {len(removed)}")
+
+def delete_junk_files_with_warning():
+    answer = messagebox.askyesno("Warning", "This will permanently delete .tmp, .log, .cache, .bak, .dmp, .old, .chk, .gid, .~ files from temp and user folders. Continue?")
+    if not answer:
+        return
+    patterns = [
+        str(TEMP_DIR / '**' / '*.tmp'),
+        str(TEMP_DIR / '**' / '*.log'),
+        str(TEMP_DIR / '**' / '*.cache'),
+        str(TEMP_DIR / '**' / '*.bak'),
+        str(TEMP_DIR / '**' / '*.dmp'),
+        str(TEMP_DIR / '**' / '*.old'),
+        str(TEMP_DIR / '**' / '*.chk'),
+        str(TEMP_DIR / '**' / '*.gid'),
+        str(TEMP_DIR / '**' / '*.~'),
+        str(Path.home() / '**' / '*.tmp'),
+        str(Path.home() / '**' / '*.log'),
+        str(Path.home() / '**' / '*.cache'),
+        str(Path.home() / '**' / '*.bak'),
+        str(Path.home() / '**' / '*.dmp'),
+        str(Path.home() / '**' / '*.old'),
+        str(Path.home() / '**' / '*.chk'),
+        str(Path.home() / '**' / '*.gid'),
+        str(Path.home() / '**' / '*.~'),
+    ]
+    deleted = 0
+    for pattern in patterns:
+        for file in glob.glob(pattern, recursive=True):
+            try:
+                os.remove(file)
+                deleted += 1
+            except Exception:
+                pass
+    messagebox.showinfo("Cleanup", f"Deleted {deleted} junk files.")
+
+def clear_temp_and_run_cleanmgr():
+    folders = [
+        TEMP_DIR,
+        Path.home() / 'AppData' / 'Local' / 'Temp',
+        Path('C:/Windows/Temp'),
+        Path('C:/Windows/Prefetch'),
+    ]
+    removed = 0
+    for folder in folders:
+        if folder.exists():
+            for item in folder.iterdir():
+                try:
+                    if item.is_file():
+                        item.unlink(missing_ok=True)
+                        removed += 1
+                    elif item.is_dir():
+                        shutil.rmtree(item, ignore_errors=True)
+                        removed += 1
+                except Exception:
+                    pass
+    try:
+        subprocess.run(['cleanmgr.exe', '/LOWDISK', '/d', 'C:'], check=False)
+    except Exception:
+        pass
+    messagebox.showinfo("Cleanup", f"Temp/cache folders cleaned ({removed} items). Disk Cleanup launched.")
+
 BOOSTER_COMMANDS = {
     "Optimize Network": "Network optimization commands",
     "Optimize System": "System optimization commands",
@@ -1302,9 +1466,6 @@ def ensure_resources():
         "orange.json": "https://raw.githubusercontent.com/adasjusk/OrangBooster/beta/files/orange.json"
     }
     
-    import requests
-    from pathlib import Path
-    
     for filename, url in required_files.items():
         file_path = resource_path(filename)
         if not os.path.exists(file_path):
@@ -1339,7 +1500,17 @@ def load_custom_theme():
         print(f"[!] Warning: Theme loading failed: {e}")
         return None
 
-# Load the custom theme
+# Ensure the application directory exists before anything else
+os.makedirs(APP_DIR, exist_ok=True)
+# Download all required resources before any theme or GUI code
+if not ensure_resources():
+    # Create a hidden Tk root for messagebox
+    import tkinter as tk
+    root = tk.Tk()
+    root.withdraw()
+    messagebox.showerror("Error", "Failed to download required resources. Please check your internet connection and try again.")
+    sys.exit(1)
+# Now set the theme
 theme_path = resource_path('orange.json')
 ctk.set_default_color_theme(theme_path)
 
@@ -1352,7 +1523,7 @@ def launch_gui():
         print("[+] Program initialized successfully")
 
         root = ctk.CTk()
-        root.minsize(720, 550)
+        root.resizable(False, False)
         root.geometry("900x660")
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
@@ -1368,7 +1539,7 @@ def launch_gui():
             ctk.set_default_color_theme("orange.json")
         app = OrangeBoosterApp(root)
         app.show_admin_warning()  # Show admin warning at startup
-        play_splash_in_gui(root, "video.mp4", lambda: app.show_tab("Updates & About"))
+        play_splash_in_gui(root, "video.mp4", lambda: app.show_tab("Info"))
         root.mainloop()
     except Exception as e:
         messagebox.showerror("Critical Error", f"Failed to start application:\n{e}")
@@ -1376,17 +1547,13 @@ def launch_gui():
 
 class OrangeBoosterApp:
     def __init__(self, root):
+        self.saved_state = self.load_state()
         self.root = root
         self.root.iconbitmap(resource_path("orange.ico"))
         try:
             os.makedirs(APP_DIR, exist_ok=True)
-        except PermissionError:
-            messagebox.showerror("Error", f"Permission denied when creating directory:\n{APP_DIR}\nPlease run as administrator.")
-            sys.exit(1)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to create directory:\n{APP_DIR}\n{str(e)}")
-            sys.exit(1)
-        self.saved_state = self.load_state()
         content_wrapper = ctk.CTkFrame(root, fg_color="transparent")
         content_wrapper.pack(fill="both", expand=True)
         header_frame = ctk.CTkFrame(content_wrapper, fg_color="transparent")
@@ -1399,11 +1566,11 @@ class OrangeBoosterApp:
             icon_label.pack(side="left", padx=10)
         except Exception as e:
             print(f"[!] Failed to load logo: {e}")
-        title_label = ctk.CTkLabel(header_frame, text="OrangBooster", font=("Comic Sans MS", 28, "bold"))
+        title_label = ctk.CTkLabel(header_frame, text="Orange Booster", font=("Comic Sans MS", 28, "bold"))
         title_label.pack(side="left")
         self.tabs = {
             "Browser": ["Brave Browser", "Ungoogled Chromium", "Arc Browser"],
-            "Updates & About": [],
+            "Info": [],
             "Booster": [
                 "Optimize Network",
                 "Optimize System",
@@ -1424,22 +1591,23 @@ class OrangeBoosterApp:
                 "Disable BitLocker Encryption",
                 "Set taskbar to left on Windows 11",
                 "Disable Sticky Keys"
-            ]
+            ],
+            "Cleanup": []
         }
         # Setup tab buttons (no background frame)
         self.tab_frame = ctk.CTkFrame(content_wrapper, fg_color="transparent", border_width=0)
-        self.tab_frame.pack(pady=10)
+        self.tab_frame.pack(pady=5)
         self.tab_buttons = {}
         for idx, name in enumerate(self.tabs):
             btn = ctk.CTkButton(
-                self.tab_frame, text=name, width=120,
+                self.tab_frame, text=name, width=80,
                 fg_color="#333333", text_color="#ffffff",
                 command=lambda n=name: self.show_tab(n)
             )
             btn.grid(row=0, column=idx, padx=5)
             self.tab_buttons[name] = btn
         self.options_frame = ctk.CTkFrame(content_wrapper, fg_color="transparent")
-        self.options_frame.pack(padx=40, pady=30)
+        self.options_frame.pack(padx=20, pady=10)
         self.toggle_vars = {}
         self.show_tab("Updates & About")
 
@@ -1452,11 +1620,9 @@ class OrangeBoosterApp:
         for widget in self.options_frame.winfo_children():
             widget.destroy()
         self.toggle_vars = {}
-        if tab_name == "Updates & About":
-            import platform
-            import getpass
+        if tab_name == "Info":
             sys_info = [
-                "OrangBooster v6.5 Beta",
+                "OrangBooster v6.6 Beta",
                 "InterJava Studio",
                 "Designed By Vakarux",
                 "Coded by adasjusk",
@@ -1467,8 +1633,8 @@ class OrangeBoosterApp:
             for item in sys_info:
                 label = ctk.CTkLabel(self.options_frame, text=item, font=("Helvetica", 13))
                 label.pack(pady=0, anchor="center")
-            update_button = ctk.CTkButton(self.options_frame, text="Check For Updates", width=160, command=check_for_updates)
-            update_button.pack(pady=(2, 2))
+            update_button = ctk.CTkButton(self.options_frame, text="Check For Updates", width=120, command=check_for_updates)
+            update_button.pack(pady=(4, 4))
             return
         if tab_name == "Booster":
             # Modern booster selection with checkboxes and execute button
@@ -1504,19 +1670,18 @@ class OrangeBoosterApp:
                 threading.Thread(target=run, daemon=True).start()
             ctk.CTkButton(self.options_frame, text="Execute Selected Boosts", command=run_selected_boosts, width=220, height=32).pack(pady=12)
             return
+        
         if tab_name == "Browser":
-            # Modern browser section with images and working buttons
             self.options_frame.grid_columnconfigure((0, 1, 2), weight=1, uniform="browser")
             browsers = [
                 ("Brave Browser", "brave.png", open_brave_browser),
-                ("Chromium Browser", "chromium.png", open_ungoogled_chromium),
+                ("Ungoogled Chromium", "chromium.png", open_ungoogled_chromium),
                 ("Arc Browser", "arc.png", open_arc_browser)
             ]
             for idx, (name, img_file, func) in enumerate(browsers):
                 try:
                     img_path = os.path.join(APP_DIR, img_file)
                     if not os.path.exists(img_path):
-                        # Try to download if missing
                         ensure_resources()
                     img = Image.open(img_path).resize((96, 96), Image.LANCZOS)
                     photo = ImageTk.PhotoImage(img)
@@ -1524,22 +1689,15 @@ class OrangeBoosterApp:
                     print(f"[!] Failed to load {img_file}: {e}")
                     photo = None
                 browser_frame = ctk.CTkFrame(self.options_frame, fg_color="transparent")
-               
-                selected = [(name, func) for name, (var, func) in self.boost_vars.items() if var.get()]
-                if not selected:
-                    messagebox.showinfo("No Boost Selected", "Please select at least one boost to execute.")
-                    return
-                def run():
-                    for name, func in selected:
-                        try:
-                            func()
-                        except Exception as e:
-                            print(f"[!] {name} failed: {e}")
-                            messagebox.showerror("Error", f"{name} failed:\n{e}")
-                    messagebox.showinfo("Done", "Selected boosts executed.")
-                threading.Thread(target=run, daemon=True).start()
-            ctk.CTkButton(self.options_frame, text="Execute Selected Boosts", command=run_selected_boosts, width=220, height=32).pack(pady=12)
-            return
+                browser_frame.grid(row=0, column=idx, padx=10, pady=10, sticky="nsew")
+                img_label = ctk.CTkLabel(browser_frame, image=photo, text="", fg_color="transparent")
+                img_label.image = photo
+                img_label.pack(anchor="center")
+                browser_button = ctk.CTkButton(
+                    browser_frame, text=name, fg_color="#ff7f00", text_color="#000000", hover_color="#ffa733", width=110, height=28, corner_radius=10, command=func
+                )
+                browser_button.pack(pady=(8, 4))
+
         if tab_name == "Tasks":
             win11 = is_windows_11()
             # Map UI labels to TASKS_FUNCTIONS keys
@@ -1609,6 +1767,17 @@ class OrangeBoosterApp:
                     command=make_toggle_callback(option, var, func_key))
                 switch.pack(anchor="w", pady=8, padx=10)
                 self.toggle_vars[option] = var
+
+        if tab_name == "Cleanup":
+            title = ctk.CTkLabel(self.options_frame, text="Cleanup Temporary/Junk Files", font=("Arial", 20, "bold"))
+            title.pack(pady=10)
+            btn1 = ctk.CTkButton(self.options_frame, text="Clean Browser Data", command=clear_browser_cache_and_history, width=120, height=28)
+            btn1.pack(pady=4, padx=10)
+            btn2 = ctk.CTkButton(self.options_frame, text="Delete Junk Files", command=delete_junk_files_with_warning, width=120, height=28)
+            btn2.pack(pady=4, padx=10)
+            btn3 = ctk.CTkButton(self.options_frame, text="Run Cleanmgr", command=clear_temp_and_run_cleanmgr, width=120, height=28)
+            btn3.pack(pady=4, padx=10)
+            return
 
     def execute_booster_function(self, func):
         def run_function():
