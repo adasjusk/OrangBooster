@@ -4,3 +4,5 @@ opencv-python
 packaging
 psutil
 customtkinter
+auto-py-to-exe
+pyinstaller
