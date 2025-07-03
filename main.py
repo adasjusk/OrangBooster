@@ -24,11 +24,11 @@ import getpass
 from packaging.version import Version
 
 ##################################################################################
-# Created by AdasJusk
+# Created by adasjusk
 # GitHub: https://github.com/adasjusk/OrangBooster
 # Credits: Vakarux, adasjusk
 # License: GPLv3 Allows to edit and redistribute
-# Version: 6.5 beta 
+# Version: 7
 # Date: 2025-06-14
 # Hide deprecation warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="customtkinter")
@@ -45,7 +45,8 @@ REQUIRED_FILES = {
     "brave.png": BASE_URL + "brave.png",
     "chromium.png": BASE_URL + "chromium.png",
     "arc.png": BASE_URL + "arc.png",
-    "orange.json": BASE_URL + "orange.json"
+    "orange.json": BASE_URL + "orange.json",
+    "state.json": BASE_URL + "state.json"
 }
 ##################################################################################
 def verify_required_files():
@@ -117,7 +118,7 @@ def init_program():
             default_state = {
                 "tasks": {
                     "NumLock at Startup": True,
-                    "Hidden Files": False,
+                    "Hidden Files": True,
                     "Make BSOD Better": False,
                     "Home and Gallery": True,
                     "Hibernation": True,
@@ -134,7 +135,7 @@ def init_program():
                     "BitLocker Encryption": True,
                     "Set taskbar to left": False
                 }
-            }
+              }
             try:
                 with open(STATE_FILE, "w", encoding="utf-8") as f:
                     json.dump(default_state, f, indent=2)
@@ -178,8 +179,9 @@ def download_required_files():
         messagebox.showerror("Error", f"Failed to initialize configuration:\n{str(e)}")
         return False
 def check_for_updates():
+    # Cmon spin your fucking brain
     print("Executing: Check For Updates")
-    REMOTE_URL = "https://raw.githubusercontent.com/adasjusk/OrangBooster/beta/files/main.py"
+    REMOTE_URL = "https://raw.githubusercontent.com/adasjusk/OrangBooster/beta/main.py"
     LOCAL_VERSION = "OrangBooster v7.0"
     try:
         response = requests.get(REMOTE_URL, timeout=10)
@@ -223,14 +225,17 @@ def is_windows_11():
     except Exception:
         return False
 def open_brave_browser():
+    # my pet
     url = "https://referrals.brave.com/latest/BraveBrowserSetup-BRV013.exe"
     download_and_install(url, "BraveBrowserSetup-BRV010.exe")
     print("Brave Browser installed successfully.")
 def open_ungoogled_chromium():
-    url = "https://github.com/ungoogled-software/ungoogled-chromium-windows/releases/download/137.0.7151.103-1.1/ungoogled-chromium_137.0.7151.103-1.1_installer_x64.exe"
+    # I hate this url every time it changes :(
+    url = "https://github.com/ungoogled-software/ungoogled-chromium-windows/releases/download/137.0.7151.119-1.1/ungoogled-chromium_137.0.7151.119-1.1_installer_x64.exe"
     download_and_install(url, "ungoogled-chromium-installer.exe")
     print("Ungoogled Chromium installed successfully.")
 def open_arc_browser():
+    # disgner browser and nothing to much if it wasn't uwp i love it
     url = "https://releases.arc.net/windows/ArcInstaller.exe"
     download_and_install(url, "ArcInstaller.exe")
     print("Arc Browser installed successfully.")
@@ -263,6 +268,8 @@ BROWSER_FUNCTIONS = {
     "Arc Browser": open_arc_browser
 }
 def optimize_network():
+    # Cmon buy adas a new internet not that 0.26 Mbps
+    # Stfu vakarux - adas
     print("Executing: Optimize Network")
     commands = [
         'netsh interface teredo set state disabled',
@@ -312,7 +319,6 @@ Add-Type $code -name Win32 -NameSpace System
 '''
     subprocess.run(["powershell", "-NoProfile", "-Command", ps_script], shell=True, check=False)
     clean_temp_files()
-    # Instead of self.run_operation, just print and run the commands directly
     print("Optimizing Memory Settings...")
     memory_commands = [
         r'reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v "LargeSystemCache" /t REG_DWORD /d "1" /f',
@@ -386,6 +392,20 @@ def disable_xbox_stuff():
         sys.exit(1)
 def debloat_system_services():
     try:
+        oo_url = "https://code.ravendevteam.org/talon/uninstall_oo.ps1"
+        oo_script = APP_DIR / "uninstall_oo.ps1"
+        try:
+            response = requests.get(oo_url, timeout=10)
+            response.raise_for_status()
+            with open(oo_script, "wb") as f:
+                f.write(response.content)
+            print("[+] Downloaded OneDrive/Outlook uninstaller script.")
+            subprocess.run([
+                "powershell", "-ExecutionPolicy", "Bypass", "-File", str(oo_script)
+            ], check=False)
+            print("[+] Ran OneDrive/Outlook uninstaller script.")
+        except Exception as e:
+            print(f"[!] Failed to download or run OneDrive/Outlook uninstaller: {e}")
         services = [
             "AJRouter",                     # AllJoyn Router Service
             "AppVClient",                   # Application Virtualization Client
@@ -894,11 +914,21 @@ def disable_bing_search():
     )
     subprocess.run(["taskill", "SearchUI"], shell=True, check=False)
 def enable_classic_menu():
-    subprocess.run(["reg", "delete", "HKCU\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}", "/f"], shell=True, check=False)
-    print("[+] Modern context menu has been restored")
+    # Enable classic context menu by creating the required registry key and value
+    subprocess.run([
+        "reg", "add", r"HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}", "/f"
+    ], shell=True, check=False)
+    subprocess.run([
+        "reg", "add", r"HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32", "/f", "/ve"
+    ], shell=True, check=False)
+    print("[+] Classic context menu has been enabled (Windows 11 style disabled)")
+
 def disable_classic_menu():
-    subprocess.run(["reg", "add", "HKCU\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32", "/f", "/ve"], shell=True, check=False)
-    print("[+] Classic context menu has been enabled")
+    # Restore modern context menu by deleting the registry key
+    subprocess.run([
+        "reg", "delete", r"HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}", "/f"
+    ], shell=True, check=False)
+    print("[+] Modern context menu has been restored (classic menu disabled)")
 def enable_ads():
     try:
         reg_paths = [
@@ -1020,22 +1050,43 @@ def enable_sticky_keys():
         sys.exit(1)
 def disable_sticky_keys():
     try:
-        reg_path = r"Control Panel\Accessibility\StickyKeys"
-        key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, reg_path, 0, winreg.KEY_SET_VALUE)
-        winreg.SetValueEx(key, "Flags", 0, winreg.REG_DWORD, 506)
-        winreg.CloseKey(key)
-        reg_path = r"Control Panel\Accessibility\Keyboard Response"
-        key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, reg_path, 0, winreg.KEY_SET_VALUE)
-        winreg.SetValueEx(key, "Flags", 0, winreg.REG_DWORD, 122)
-        winreg.CloseKey(key)
-        reg_path = r"Control Panel\Accessibility\ToggleKeys"
-        key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, reg_path, 0, winreg.KEY_SET_VALUE)
-        winreg.SetValueEx(key, "Flags", 0, winreg.REG_DWORD, 58)
-        winreg.CloseKey(key)
-        print("[+] Sticky Keys features have been disabled")
+        import winreg
+        reg_settings = [
+            (r"Control Panel\Accessibility\StickyKeys", {
+                "Flags": 506,
+                "HotKeyActive": 0,
+                "HotKeySound": 0,
+                "ConfirmOnHotKey": 0
+            }),
+            (r"Control Panel\Accessibility\Keyboard Response", {
+                "Flags": 122,
+                "HotKeyActive": 0,
+                "HotKeySound": 0,
+                "ConfirmOnHotKey": 0
+            }),
+            (r"Control Panel\Accessibility\ToggleKeys", {
+                "Flags": 58,
+                "HotKeyActive": 0,
+                "HotKeySound": 0,
+                "ConfirmOnHotKey": 0
+            }),
+            (r"Control Panel\Accessibility\FilterKeys", {
+                "Flags": 34,
+                "HotKeyActive": 0,
+                "HotKeySound": 0,
+                "ConfirmOnHotKey": 0
+            })
+        ]
+        for reg_path, values in reg_settings:
+            key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, reg_path, 0, winreg.KEY_SET_VALUE)
+            for name, val in values.items():
+                winreg.SetValueEx(key, name, 0, winreg.REG_DWORD, val)
+            winreg.CloseKey(key)
+        print("[+] Sticky Keys and related accessibility features have been disabled")
     except Exception as e:
         print(f"[!] Failed to disable accessibility features: {e}")
         sys.exit(1)
+
 def run_powershell(cmd: str):
     subprocess.run(["powershell", "-NoProfile", "-Command", cmd], shell=True, check=False)
 def enable_numlock():
@@ -1055,13 +1106,36 @@ def disable_bsod_parameters():
     subprocess.run(["reg", "delete", r"HKLM\SYSTEM\CurrentControlSet\Control\CrashControl", '/f'], shell=True)
     subprocess.run(["reg", "delete", r"HKLM\SYSTEM\CurrentControlSet\Control\CrashControl", '/f'], shell=True)
 def remove_home_gallery():
-    subprocess.run(['reg', 'delete', r'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}', '/f'], shell=True)
-    subprocess.run(['reg', 'delete', r'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\{f874310e-b6b7-47dc-bc84-b9e6b38f5903}', '/f'], shell=True)
-    subprocess.run(['reg', 'add', r'HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced', '/f', '/v', 'LaunchTo', '/t', 'REG_DWORD', '/d', '1'], shell=True)
+    try:
+        # Set HubMode to 1 to hide Home in Explorer (Windows 11)
+        subprocess.run([
+            'reg', 'add', r'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer',
+            '/v', 'HubMode', '/t', 'REG_DWORD', '/d', '1', '/f'
+        ], shell=True)
+        # Remove Home and Gallery NameSpace keys
+        subprocess.run(['reg', 'delete', r'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}', '/f'], shell=True)
+        subprocess.run(['reg', 'delete', r'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\{f874310e-b6b7-47dc-bc84-b9e6b38f5903}', '/f'], shell=True)
+        # Optionally, set LaunchTo to 1 (This PC)
+        subprocess.run(['reg', 'add', r'HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced', '/v', 'LaunchTo', '/t', 'REG_DWORD', '/d', '1', '/f'], shell=True)
+        # Restart Explorer
+        try:
+            subprocess.run(["taskkill", "/f", "/im", "explorer.exe"], check=True)
+            subprocess.Popen(["explorer.exe"])
+            print("[+] Explorer restarted.")
+        except Exception as e:
+            print(f"[!] Failed to restart Explorer: {e}")
+    except Exception as e:
+        print(f"[!] Failed to remove Home and Gallery: {e}")
 def restore_home_gallery():
     subprocess.run(['reg', 'add', r'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}', '/f'], shell=True)
     subprocess.run(['reg', 'add', r'HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\{f874310e-b6b7-47dc-bc84-b9e6b38f5903}', '/f'], shell=True)
     subprocess.run(['reg', 'add', r'HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced', '/f', '/v', 'LaunchTo', '/t', 'REG_DWORD', '/d', '0'], shell=True)
+    try:
+        subprocess.run(["taskkill", "/f", "/im", "explorer.exe"], check=True)
+        subprocess.Popen(["explorer.exe"])
+        print("[+] Explorer restarted.")
+    except Exception as e:
+        print(f"[!] Failed to restart Explorer: {e}")
 def disable_hibernation():
     subprocess.run(["powercfg", "-h", "off"], shell=True)
 def enable_hibernation():
@@ -1093,51 +1167,41 @@ def _download_and_verify(script_name):
         return None
 
 def debloat_edge():
+    # I hate microsoft so remove your shitty browser
     try:
         script = _download_and_verify("edge_vanisher")
         if not script:
             raise Exception("Failed to download Edge Vanisher script")
-
-        # Execute Edge Vanisher
+        # Run the PowerShell script to debloat Edge
         cmd = f"Set-ExecutionPolicy Bypass -Scope Process -Force; & '{script}'; exit"
         proc = subprocess.run(
             ["powershell", "-Command", cmd],
             capture_output=True, text=True
         )
         if proc.returncode != 0:
-            raise Exception(f"Edge Vanisher failed: {proc.stderr or proc.stdout}")
-        
-        # Apply registry modifications
+            print(f"[!] Edge Vanisher script error: {proc.stderr or proc.stdout}")
+        # Always apply registry modifications
         registry_modifications = [
-            # Disable Edge first run experience
             (winreg.HKEY_LOCAL_MACHINE,
              r"SOFTWARE\Policies\Microsoft\Edge",
              "HideFirstRunExperience", winreg.REG_DWORD, 1),
-
-            # Disable Edge desktop shortcut creation
             (winreg.HKEY_LOCAL_MACHINE,
              r"SOFTWARE\Policies\Microsoft\Edge",
              "PreventFirstRunPage", winreg.REG_DWORD, 1),
-
-            # Disable automatic profile creation
             (winreg.HKEY_LOCAL_MACHINE,
              r"SOFTWARE\Policies\Microsoft\Edge",
              "AutoImportAtFirstRun", winreg.REG_DWORD, 0),
-
-            # Disable Edge updates
             (winreg.HKEY_LOCAL_MACHINE,
              r"SOFTWARE\Policies\Microsoft\EdgeUpdate",
              "UpdateDefault", winreg.REG_DWORD, 0),
         ]
-
         for root, path, name, val_type, val in registry_modifications:
             try:
                 with winreg.CreateKeyEx(root, path, 0, winreg.KEY_SET_VALUE) as key:
                     winreg.SetValueEx(key, name, 0, val_type, val)
             except Exception as e:
-                pass
-
-        # Block Edge in hosts file
+                print(f"[!] Registry set failed for {name} in {path}: {e}")
+        # Block Edge URLs in hosts file if not already present
         edge_urls = [
             "c2rsetup.officeapps.live.com",
             "edgesetup.microsoft.com",
@@ -1145,16 +1209,24 @@ def debloat_edge():
             "msedge.sf.dl.delivery.mp.microsoft.com"
         ]
         hosts_path = r"C:\Windows\System32\drivers\etc\hosts"
-        with open(hosts_path, 'a') as hosts_file:
-            for url in edge_urls:
-                hosts_file.write(f"\n127.0.0.1 {url}")
+        try:
+            with open(hosts_path, 'r', encoding='utf-8', errors='ignore') as hosts_file:
+                hosts_content = hosts_file.read()
+        except Exception:
+            hosts_content = ""
+        try:
+            with open(hosts_path, 'a', encoding='utf-8', errors='ignore') as hosts_file:
+                for url in edge_urls:
+                    if url not in hosts_content:
+                        hosts_file.write(f"\n127.0.0.1 {url}")
+        except Exception as e:
+            print(f"[!] Could not write to hosts file: {e}")
+        print("[+] Microsoft Edge has been debloated.")
     except Exception as e:
         print(f"[!] Failed to debloat Edge: {e}")
         script = _download_and_verify("edge_vanisher")
         if not script:
             raise Exception("Failed to download Edge Vanisher script")
-
-        # Execute Edge Vanisher
         cmd = f"Set-ExecutionPolicy Bypass -Scope Process -Force; & '{script}'; exit"
         proc = subprocess.run(
             ["powershell", "-Command", cmd],
@@ -1162,38 +1234,26 @@ def debloat_edge():
         )
         if proc.returncode != 0:
             raise Exception(f"Edge Vanisher failed: {proc.stderr or proc.stdout}")
-        
-        # Apply registry modifications
         registry_modifications = [
-            # Disable Edge first run experience
             (winreg.HKEY_LOCAL_MACHINE,
              r"SOFTWARE\Policies\Microsoft\Edge",
              "HideFirstRunExperience", winreg.REG_DWORD, 1),
-
-            # Disable Edge desktop shortcut creation
             (winreg.HKEY_LOCAL_MACHINE,
              r"SOFTWARE\Policies\Microsoft\Edge",
              "PreventFirstRunPage", winreg.REG_DWORD, 1),
-
-            # Disable automatic profile creation
             (winreg.HKEY_LOCAL_MACHINE,
              r"SOFTWARE\Policies\Microsoft\Edge",
              "AutoImportAtFirstRun", winreg.REG_DWORD, 0),
-
-            # Disable Edge updates
             (winreg.HKEY_LOCAL_MACHINE,
              r"SOFTWARE\Policies\Microsoft\EdgeUpdate",
              "UpdateDefault", winreg.REG_DWORD, 0),
         ]
-
         for root, path, name, val_type, val in registry_modifications:
             try:
                 with winreg.CreateKeyEx(root, path, 0, winreg.KEY_SET_VALUE) as key:
                     winreg.SetValueEx(key, name, 0, val_type, val)
             except Exception as e:
                 pass
-
-        # Block Edge in hosts file
         edge_urls = [
             "c2rsetup.officeapps.live.com",
             "edgesetup.microsoft.com",
@@ -1360,38 +1420,48 @@ BOOSTER_FUNCTIONS = {
     "Make Everything In list": make_everything
 }
 TASKS_COMMANDS = {
-    "Disable Copilot AI": "Registry and PowerShell commands to disable Copilot",
-    "Disable Cortana": "Registry and PowerShell commands to disable Cortana",
-    "Disable Nagle Algorithm For Minecraft": "Registry commands to disable Nagle's Algorithm",
-    "Set Windows To Dark Mode": "Registry commands to enable dark mode",
-    "Disable Bing Search in Start Menu": "Registry commands to disable Bing search",
-    "Set Classic Right-Click Menu": "Registry commands for classic context menu",
-    "Disable Ads In Windows": "Registry commands to disable Windows ads",
-    "Disable BitLocker Encryption": "System commands to disable BitLocker",
-    "Set taskbar to left": "Registry commands to align taskbar",
-    "Disable Sticky Keys": "Registry commands to disable accessibility features"
+    "NumLock at Startup": "Registry command to enable or disable NumLock at startup.",
+    "Hidden Files": "Registry command to show or hide hidden files in Explorer.",
+    "Make BSOD Better": "Registry commands to improve BSOD info and disable promo screens.",
+    "Home and Gallery": "Registry commands to remove or restore Home and Gallery in Explorer.",
+    "Hibernation": "System command to enable or disable hibernation.",
+    "Reserved Storage": "PowerShell command to enable or disable reserved storage.",
+    "Edge Browser": "PowerShell script and registry commands to debloat or restore Microsoft Edge.",
+    "Copilot AI": "Registry and PowerShell commands to enable or disable Copilot AI.",
+    "Cortana": "Registry and PowerShell commands to enable or disable Cortana.",
+    "Nagle Algorithm For Minecraft": "Registry commands to enable or disable Nagle's Algorithm for gaming.",
+    "Dark Mode": "Registry commands to enable or disable Windows dark mode.",
+    "Ads In Windows": "Registry commands to enable or disable Windows advertising features.",
+    "Sticky Keys": "Registry commands to enable or disable Sticky Keys and related features.",
+    "BitLocker Encryption": "System commands to enable or disable BitLocker drive encryption.",
+    "Set taskbar to left": "Registry and Explorer restart to align taskbar icons left or center.",
 }
 TASKS_DEFINITIONS = {
-    "Disable Copilot AI": "Disables Windows Copilot AI assistant",
-    "Disable Cortana": "Disables Windows Cortana assistant",
-    "Disable Nagle Algorithm For Minecraft": "Improves network performance for games",
-    "Set Windows To Dark Mode": "Enables system-wide dark theme",
-    "Disable Bing Search in Start Menu": "Removes Bing integration from search",
-    "Set Classic Right-Click Menu": "Restores the Windows 10 context menu",
-    "Disable Ads In Windows": "Removes advertising from Windows",
-    "Disable BitLocker Encryption": "Disables drive encryption",
-    "Set taskbar to left": "Changes taskbar alignment to left",
-    "Disable Sticky Keys": "Disables accessibility keyboard features"
+    "NumLock at Startup": "Enables or disables NumLock at Windows startup.",
+    "Hidden Files": "Shows or hides hidden files in File Explorer.",
+    "Make BSOD Better": "Improves BSOD information and disables promo screens.",
+    "Home and Gallery": "Removes or restores Home and Gallery from Explorer.",
+    "Hibernation": "Enables or disables Windows hibernation feature.",
+    "Reserved Storage": "Enables or disables Windows reserved storage.",
+    "Edge Browser": "Debloats or restores Microsoft Edge browser.",
+    "Copilot AI": "Enables or disables Windows Copilot AI.",
+    "Cortana": "Enables or disables Cortana assistant.",
+    "Nagle Algorithm For Minecraft": "Toggles Nagle's Algorithm for better gaming ping.",
+    "Dark Mode": "Enables or disables Windows dark mode.",
+    "Ads In Windows": "Enables or disables advertising features in Windows.",
+    "BitLocker Encryption": "Enables or disables BitLocker drive encryption.",
+    "Set taskbar to left": "Aligns the taskbar icons to the left or center (Windows 11).",
+    "Sticky Keys": "Enables or disables Sticky Keys and related accessibility features."
 }
 
 TASKS_FUNCTIONS = {
     "NumLock at Startup": {"enable": enable_numlock, "disable": disable_numlock},
     "Hidden Files": {"enable": show_hidden_files, "disable": hide_hidden_files},
     "Make BSOD Better": {"enable": enable_bsod_parameters, "disable": disable_bsod_parameters},
-    "Home and Gallery": {"enable": remove_home_gallery, "disable": restore_home_gallery},
+    "Home and Gallery": {"enable": restore_home_gallery, "disable": remove_home_gallery},
     "Hibernation": {"enable": enable_hibernation, "disable": disable_hibernation},
     "Reserved Storage": {"enable": enable_reserved_storage, "disable": disable_reserved_storage},
-    "Edge Browser": {"enable": debloat_edge, "disable": restore_edge},
+    "Edge Browser": {"enable": restore_edge, "disable": debloat_edge},
     "Copilot AI": {"enable": enable_copilot_ai, "disable": disable_copilot_ai},
     "Cortana": {"enable": enable_cortana, "disable": disable_cortana},
     "Nagle Algorithm For Minecraft": {"enable": enable_nagle_algorithm, "disable": disable_nagle_algorithm},
@@ -1445,6 +1515,7 @@ def play_splash_in_gui(root, video_path, on_finish):
                 splash_overlay.attributes("-alpha", alpha / 10)
                 splash_overlay.update()
                 time.sleep(0.05)
+
         except:
             pass
         splash_overlay.destroy()
@@ -1514,7 +1585,16 @@ if not ensure_resources():
 theme_path = resource_path('orange.json')
 ctk.set_default_color_theme(theme_path)
 
+def print_banner():
+    print(" [██████╗ ██████╗  █████╗ ███╗   ██╗ ██████╗ ███████╗")
+    print("[██╔═══██╗██╔══██╗██╔══██╗████╗  ██║██╔════╝ ██╔════╝")
+    print("[██║   ██║██████╔╝███████║██╔██╗ ██║██║  ███╗█████╗  ")
+    print("[██║   ██║██╔══██╗██╔══██║██║╚██╗██║██║   ██║██╔══╝  ")
+    print("[╚██████╔╝██║  ██║██║  ██║██║ ╚████║╚██████╔╝███████╗")
+    print(" [╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝")
+
 def launch_gui():
+    print_banner()
     try:
         print("[*] Initializing program...")
         if not init_program():
@@ -1524,12 +1604,12 @@ def launch_gui():
 
         root = ctk.CTk()
         root.resizable(False, False)
-        root.geometry("900x660")
+        root.geometry("720x800")
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
         x = (screen_width - 720) // 2
-        y = (screen_height - 550) // 2
-        root.geometry(f"900x660+{x}+{y}")
+        y = (screen_height - 800) // 2
+        root.geometry(f"720x800+{x}+{y}")
         root.title("Orange Booster")
         ctk.set_appearance_mode("dark")
         theme_path = APP_DIR / 'orange.json'
@@ -1538,7 +1618,7 @@ def launch_gui():
         else:
             ctk.set_default_color_theme("orange.json")
         app = OrangeBoosterApp(root)
-        app.show_admin_warning()  # Show admin warning at startup
+        app.show_admin_warning()
         play_splash_in_gui(root, "video.mp4", lambda: app.show_tab("Info"))
         root.mainloop()
     except Exception as e:
@@ -1568,6 +1648,7 @@ class OrangeBoosterApp:
             print(f"[!] Failed to load logo: {e}")
         title_label = ctk.CTkLabel(header_frame, text="Orange Booster", font=("Comic Sans MS", 28, "bold"))
         title_label.pack(side="left")
+        # Ungoogled Chromium is shit
         self.tabs = {
             "Browser": ["Brave Browser", "Ungoogled Chromium", "Arc Browser"],
             "Info": [],
@@ -1581,16 +1662,23 @@ class OrangeBoosterApp:
                 "Apply All Optimizations"
             ],
             "Tasks": [
-                "Disable Copilot AI",
-                "Disable Cortana",
-                "Disable Nagle Algorithm For Minecraft",
-                "Set Windows To Dark Mode",
-                "Disable Bing Search in Start Menu",
-                "Set Classic Right-Click Menu",
-                "Disable Ads In Windows",
-                "Disable BitLocker Encryption",
-                "Set taskbar to left on Windows 11",
-                "Disable Sticky Keys"
+                "NumLock at Startup",
+                "Hidden Files",
+                "Make BSOD Better",
+                "Home and Gallery",
+                "Hibernation",
+                "Reserved Storage",
+                "Edge Browser",
+                "Copilot AI",
+                "Cortana",
+                "Nagle Algorithm For Minecraft",
+                "Dark Mode",
+                "Bing Search in Start Menu",
+                "Classic Right-Click Menu",
+                "Ads In Windows",
+                "BitLocker Encryption",
+                "Set taskbar to left",
+                "Sticky Keys"
             ],
             "Cleanup": []
         }
@@ -1610,7 +1698,6 @@ class OrangeBoosterApp:
         self.options_frame.pack(padx=20, pady=10)
         self.toggle_vars = {}
         self.show_tab("Updates & About")
-
     def show_tab(self, tab_name):
         for name, btn in self.tab_buttons.items():
             if name == tab_name:
@@ -1622,7 +1709,7 @@ class OrangeBoosterApp:
         self.toggle_vars = {}
         if tab_name == "Info":
             sys_info = [
-                "OrangBooster v6.6 Beta",
+                "OrangBooster v7.0",
                 "InterJava Studio",
                 "Designed By Vakarux",
                 "Coded by adasjusk",
@@ -1637,7 +1724,6 @@ class OrangeBoosterApp:
             update_button.pack(pady=(4, 4))
             return
         if tab_name == "Booster":
-            # Modern booster selection with checkboxes and execute button
             title = ctk.CTkLabel(self.options_frame, text="Select Boosts to Apply", font=("Arial", 20, "bold"))
             title.pack(pady=10)
             boost_options = [
@@ -1670,7 +1756,6 @@ class OrangeBoosterApp:
                 threading.Thread(target=run, daemon=True).start()
             ctk.CTkButton(self.options_frame, text="Execute Selected Boosts", command=run_selected_boosts, width=220, height=32).pack(pady=12)
             return
-        
         if tab_name == "Browser":
             self.options_frame.grid_columnconfigure((0, 1, 2), weight=1, uniform="browser")
             browsers = [
@@ -1697,33 +1782,39 @@ class OrangeBoosterApp:
                     browser_frame, text=name, fg_color="#ff7f00", text_color="#000000", hover_color="#ffa733", width=110, height=28, corner_radius=10, command=func
                 )
                 browser_button.pack(pady=(8, 4))
-
         if tab_name == "Tasks":
             win11 = is_windows_11()
-            # Map UI labels to TASKS_FUNCTIONS keys
-            ui_to_func = {
-                "Disable Copilot AI": "Copilot AI",
-                "Disable Cortana": "Cortana",
-                "Disable Nagle Algorithm For Minecraft": "Nagle Algorithm For Minecraft",
-                "Set Windows To Dark Mode": "Dark Mode",
-                "Disable Bing Search in Start Menu": "Bing Search in Start Menu",
-                "Set Classic Right-Click Menu": "Classic Right-Click Menu",
-                "Disable Ads In Windows": "Ads In Windows",
-                "Disable BitLocker Encryption": "BitLocker Encryption",
-                "Set taskbar to left on Windows 11": "Set taskbar to left",
-                "Disable Sticky Keys": "Sticky Keys"
-            }
             win11_only_options = [
-                "Set taskbar to left on Windows 11",
-                "Disable Copilot AI",
-                "Set Classic Right-Click Menu",
-                "Disable BitLocker Encryption"
+                "Set taskbar to left",
+                "Copilot AI",
+                "Classic Right-Click Menu",
+                "Home and Gallery",
+                "BitLocker Encryption"
             ]
             win10_only_options = [
-                "Disable Cortana",
-                "Disable Bing Search in Start Menu"
+                "Cortana",
+                "Bing Search in Start Menu"
             ]
-            for option in self.tabs[tab_name]:
+            for option in self.tabs["Tasks"]:
+                ui_to_func = {
+                    "Copilot AI": "Copilot AI",
+                    "Cortana": "Cortana",
+                    "Nagle Algorithm For Minecraft": "Nagle Algorithm For Minecraft",
+                    "Windows To Dark Mode": "Dark Mode",
+                    "Bing Search in Start Menu": "Bing Search in Start Menu",
+                    "Classic Right-Click Menu": "Classic Right-Click Menu",
+                    "Ads In Windows": "Ads In Windows",
+                    "BitLocker Encryption": "BitLocker Encryption",
+                    "Taskbar to left on Windows 11": "Set taskbar to left",
+                    "Sticky Keys": "Sticky Keys",
+                    "NumLock at Startup": "NumLock at Startup",
+                    "Hidden Files": "Hidden Files",
+                    "Make BSOD Better": "Make BSOD Better",
+                    "Home and Gallery": "Home and Gallery",
+                    "Hibernation": "Hibernation",
+                    "Reserved Storage": "Reserved Storage",
+                    "Edge Browser": "Edge Browser"
+                }
                 is_disabled = (option in win11_only_options and not win11) or (option in win10_only_options and win11)
                 func_key = ui_to_func.get(option, option)
                 saved = self.saved_state.get("tasks", {}).get(option, False)
@@ -1733,10 +1824,8 @@ class OrangeBoosterApp:
                         if func_key not in TASKS_FUNCTIONS:
                             return
                         try:
-                            # Determine if this is a 'Disable ...' or 'Enable ...' task
                             is_disable = opt.lower().startswith("disable ")
                             if v.get():
-                                # Switch ON: disable for 'Disable ...', enable for 'Enable ...'
                                 if is_disable and "disable" in TASKS_FUNCTIONS[func_key]:
                                     TASKS_FUNCTIONS[func_key]["disable"]()
                                     messagebox.showinfo("Success", f"{opt} applied.")
@@ -1744,7 +1833,6 @@ class OrangeBoosterApp:
                                     TASKS_FUNCTIONS[func_key]["enable"]()
                                     messagebox.showinfo("Success", f"{opt} applied.")
                             else:
-                                # Switch OFF: enable for 'Disable ...', disable for 'Enable ...'
                                 if is_disable and "enable" in TASKS_FUNCTIONS[func_key]:
                                     TASKS_FUNCTIONS[func_key]["enable"]()
                                     messagebox.showinfo("Success", f"{opt} reverted.")
@@ -1767,7 +1855,6 @@ class OrangeBoosterApp:
                     command=make_toggle_callback(option, var, func_key))
                 switch.pack(anchor="w", pady=8, padx=10)
                 self.toggle_vars[option] = var
-
         if tab_name == "Cleanup":
             title = ctk.CTkLabel(self.options_frame, text="Cleanup Temporary/Junk Files", font=("Arial", 20, "bold"))
             title.pack(pady=10)
@@ -1778,7 +1865,6 @@ class OrangeBoosterApp:
             btn3 = ctk.CTkButton(self.options_frame, text="Run Cleanmgr", command=clear_temp_and_run_cleanmgr, width=120, height=28)
             btn3.pack(pady=4, padx=10)
             return
-
     def execute_booster_function(self, func):
         def run_function():
             try:
@@ -1789,7 +1875,6 @@ class OrangeBoosterApp:
                 messagebox.showerror("Error", f"Operation failed:\n{str(e)}")
         thread = threading.Thread(target=run_function, daemon=True)
         thread.start()
-
     def toggle_task(self, task_name):
         if task_name not in TASKS_FUNCTIONS:
             return
@@ -1810,7 +1895,6 @@ class OrangeBoosterApp:
         except Exception as e:
             print(f"[!] Failed to toggle {task_name}: {e}")
             messagebox.showerror("Error", f"Failed to toggle {task_name}:\n{str(e)}")
-
     def load_state(self):
         try:
             if STATE_FILE.exists():
@@ -1820,7 +1904,6 @@ class OrangeBoosterApp:
         except Exception as e:
             print(f"[!] Could not load saved state: {e}")
             return {"tasks": {}}
-
     def save_state(self):
         try:
             os.makedirs(APP_DIR, exist_ok=True)
@@ -1835,7 +1918,6 @@ class OrangeBoosterApp:
         except Exception as e:
             print(f"[!] Could not save state: {e}")
             messagebox.showerror("Error", f"Failed to save state:\n{str(e)}")
-
     def show_admin_warning(self):
         warning_text = (
             "Warning: Administrator Mode Enabled\n\n"
@@ -1846,6 +1928,6 @@ class OrangeBoosterApp:
             "- Use at your own risk - no warranty is provided\n"
         )
         messagebox.showwarning("Orange Booster Warning", warning_text)
-
+# Don't you even try to change this vakarux!
 if __name__ == "__main__":
     launch_gui()
