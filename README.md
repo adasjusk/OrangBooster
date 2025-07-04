@@ -40,5 +40,5 @@ irm raw.githubusercontent.com/adasjusk/OrangBooster/legacy/get.ps1 | iex
 
 Thanks For Support <br>
 Latest Version: 7.0 <br>
-Release date: 2025-07-04
+Release date: 2025-07-15
 <p align="center">Made with Love ❤️</p>
